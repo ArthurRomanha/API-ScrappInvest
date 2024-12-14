@@ -10,6 +10,15 @@ let fundos = [
 ];
 
 module.exports = async (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Permitir todas as origens
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS'); // Métodos permitidos
+
+    if (req.method === 'OPTIONS') {
+        // Responder a preflight requests
+        res.status(200).end();
+        return;
+    }
+
     if (req.method === 'GET') {
         try {
             let fundosAtualizados = await main();
