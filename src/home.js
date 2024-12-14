@@ -1,13 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
-const express = require('express');
 
-const cors = require('cors');
-const app = express();
 const url = 'https://investidor10.com.br/fiis/';
-const PORT = 3000;
-
-app.use(cors());
 
 let fundos = [
     { "ticker": "gare11", cotacao: "", pvp: "", precoJusto: "", valueDividendYeldTwelveMonths: "", lastDividend: "" },
@@ -15,14 +9,20 @@ let fundos = [
     { "ticker": "trxf11", cotacao: "", pvp: "", precoJusto: "", valueDividendYeldTwelveMonths: "", lastDividend: "" }
 ];
 
-app.get("/fundos", async (req, res)=>{
-    try {
-        let fundosAtualizados = await main();
-        res.status(200).json({fundosAtualizados})
-    } catch {
-        res.status(500);
+module.exports = async (req, res) => {
+    if (req.method === 'GET') {
+        try {
+            let fundosAtualizados = await main();
+            res.status(200).json({ fundosAtualizados });
+        } catch (error) {
+            console.error('Erro:', error);
+            res.status(500).json({ error: 'Erro ao coletar dados' });
+        }
+    } else {
+        res.setHeader('Allow', ['GET']);
+        res.status(405).end(`Method ${req.method} Not Allowed`);
     }
-})
+};
 
 async function main() {
     for (let i = 0; i < fundos.length; i++) {
@@ -64,7 +64,3 @@ async function main() {
     }
     return fundos;
 }
-
-app.listen(PORT, ()=>{
-    console.log("http://localhost:3000/fundos");
-})
