@@ -1,0 +1,16 @@
+{
+    "version": 2,
+    "name": "scrapp-invest",
+    "builds": [
+        {
+            "src": "src/home.js",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "src/home.js"
+        }
+    ]
+}
