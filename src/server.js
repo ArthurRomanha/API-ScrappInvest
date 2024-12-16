@@ -20,9 +20,9 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'POST') {
-        const { tickers } = req.body; // Receber os tickers do corpo da requisição
+        const { fundos } = req.body; // Receber os fundos do corpo da requisição
         try {
-            let fundosAtualizados = await main(tickers); // Chama a função main passando os tickers
+            let fundosAtualizados = await main(fundos); // Chama a função main passando os fundos
             res.status(200).json({ fundosAtualizados }); // Responde com os dados atualizados
         } catch (error) {
             console.error('Erro:', error);
@@ -34,8 +34,8 @@ module.exports = async (req, res) => {
     } else {
         res.setHeader('Allow', ['POST', 'GET']);
         res.status(405).end(`Method ${req.method} Not Allowed`); // Responde com erro 405
-    };
-
+    }
+};
 async function main(fundos) {
     for (let fundo of fundos) {
         try {
