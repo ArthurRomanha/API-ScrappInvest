@@ -14,37 +14,26 @@ module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS'); // define que os métodos permitidos são apenas get e options, logo não é possível alterar nada
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') {//caso o método selecionado seja options
+    if (req.method === 'OPTIONS') {
         res.status(200).end();
         return;
     }
-    
-    if(req.method ==='POST'){
-        const { fundos } = req.body;
-        try {
-            let fundosAtualizados = await main(fundos); // Chama a função main passando os fundos
-            res.status(200).json({ fundosAtualizados });
-        } catch (error) {
-            console.error('Erro:', error);
-            res.status(500).json({ error: 'Erro ao coletar dados' }); // Responde com erro 500 se algo falhar
-        }
-    } else {
-        res.setHeader('Allow', ['POST']);
-        res.status(405).end(`Method ${req.method} Not Allowed`); // Responde com erro 405 se o método não for permitido
-    }
-    }
 
-    if (req.method === 'GET') {//caso o método selecionado seja get
+    if (req.method === 'POST') {
+        const { tickers } = req.body; // Receber os tickers do corpo da requisição
         try {
-            let fundosAtualizados = await main();//vai executar a main
-            res.status(200).json({ fundosAtualizados });//se tudo correr bem vai retornar um json com os dados 
+            let fundosAtualizados = await main(tickers); // Chama a função main passando os tickers
+            res.status(200).json({ fundosAtualizados }); // Responde com os dados atualizados
         } catch (error) {
             console.error('Erro:', error);
-            res.status(500).json({ error: 'Erro ao coletar dados' });
+            res.status(500).json({ error: 'Erro ao coletar dados' }); // Responde com erro 500
         }
-    } else {//se a requisição não for nem get nem options, retorna dizendo que a requisição não é permitida
-        res.setHeader('Allow', ['GET']);
-        res.status(405).end(`Method ${req.method} Not Allowed`);
+    } else if (req.method === 'GET') {
+        // Lógica para GET (opcional)
+        res.status(200).json({ message: 'Método GET não implementado' });
+    } else {
+        res.setHeader('Allow', ['POST', 'GET']);
+        res.status(405).end(`Method ${req.method} Not Allowed`); // Responde com erro 405
     };
 
 async function main(fundos) {
