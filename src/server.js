@@ -1,10 +1,6 @@
 const axios = require('axios');//axios é uma biblioteca que permite fazer requisições http, com base em promises (async, await)
 const cheerio = require('cheerio');//cheerio é uma biblioteca que nos permite manipular o conteúdo html da url fornecida
-const fundosPadrao =  [
-        { "ticker": "gare11", cotacao: "", pvp: "", precoJusto: "", valueDividendYeldTwelveMonths: "", lastDividend: "" },
-        { "ticker": "ggrc11", cotacao: "", pvp: "", precoJusto: "", valueDividendYeldTwelveMonths: "", lastDividend: "" },
-        { "ticker": "trxf11", cotacao: "", pvp: "", precoJusto: "", valueDividendYeldTwelveMonths: "", lastDividend: "" }
-    ];
+
 const url = 'https://investidor10.com.br/fiis/';
 
 module.exports = async (req, res) => {
