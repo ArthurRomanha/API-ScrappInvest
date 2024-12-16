@@ -27,8 +27,7 @@ module.exports = async (req, res) => {
             res.status(500).json({ error: 'Erro ao coletar dados' }); // Responde com erro 500
         }
     } else if (req.method === 'GET') {
-        let fundosPadraoAtt = await main(fundosPadrao);
-        res.status(200).json({ fundosPadraoAtt });
+        res.status(200).json({ message: "Não operante" });
     } else {
         res.setHeader('Allow', ['POST', 'GET']);
         res.status(405).end(`Method ${req.method} Not Allowed`); // Responde com erro 405
