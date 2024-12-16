@@ -1,6 +1,10 @@
 const axios = require('axios');//axios é uma biblioteca que permite fazer requisições http, com base em promises (async, await)
 const cheerio = require('cheerio');//cheerio é uma biblioteca que nos permite manipular o conteúdo html da url fornecida
-
+const fundosPadrao =  [
+        { "ticker": "gare11", cotacao: "", pvp: "", precoJusto: "", valueDividendYeldTwelveMonths: "", lastDividend: "" },
+        { "ticker": "ggrc11", cotacao: "", pvp: "", precoJusto: "", valueDividendYeldTwelveMonths: "", lastDividend: "" },
+        { "ticker": "trxf11", cotacao: "", pvp: "", precoJusto: "", valueDividendYeldTwelveMonths: "", lastDividend: "" }
+    ];
 const url = 'https://investidor10.com.br/fiis/';
 
 module.exports = async (req, res) => {
@@ -22,8 +26,11 @@ module.exports = async (req, res) => {
             console.error('Erro:', error);
             res.status(500).json({ error: 'Erro ao coletar dados' }); // Responde com erro 500
         }
+    } else if (req.method === 'GET') {
+        let fundosPadraoAtt = await main(fundosPadrao);
+        res.status(200).json({ fundosPadraoAtt });
     } else {
-        res.setHeader('Allow', ['POST']);
+        res.setHeader('Allow', ['POST', 'GET']);
         res.status(405).end(`Method ${req.method} Not Allowed`); // Responde com erro 405
     }
 };
