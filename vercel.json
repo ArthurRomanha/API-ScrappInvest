@@ -3,7 +3,7 @@
     "name": "scrapp-invest",
     "builds": [
         {
-            "src": "src/home.js",
+            "src": "src/server.js",
             "use": "@vercel/node"
         }
     ],
