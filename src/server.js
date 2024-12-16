@@ -3,19 +3,35 @@ const cheerio = require('cheerio');//cheerio é uma biblioteca que nos permite m
 
 const url = 'https://investidor10.com.br/fiis/';
 
-let fundos = [
-    { "ticker": "gare11", cotacao: "", pvp: "", precoJusto: "", valueDividendYeldTwelveMonths: "", lastDividend: "" },
-    { "ticker": "ggrc11", cotacao: "", pvp: "", precoJusto: "", valueDividendYeldTwelveMonths: "", lastDividend: "" },
-    { "ticker": "trxf11", cotacao: "", pvp: "", precoJusto: "", valueDividendYeldTwelveMonths: "", lastDividend: "" }
-];
+// let fundos = [
+//     { "ticker": "gare11", cotacao: "", pvp: "", precoJusto: "", valueDividendYeldTwelveMonths: "", lastDividend: "" },
+//     { "ticker": "ggrc11", cotacao: "", pvp: "", precoJusto: "", valueDividendYeldTwelveMonths: "", lastDividend: "" },
+//     { "ticker": "trxf11", cotacao: "", pvp: "", precoJusto: "", valueDividendYeldTwelveMonths: "", lastDividend: "" }
+// ];
 
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*'); // cabeçalho http que permite acesso de todas as origens
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS'); // define que os métodos permitidos são apenas get e options, logo não é possível alterar nada
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS'); // define que os métodos permitidos são apenas get e options, logo não é possível alterar nada
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {//caso o método selecionado seja options
         res.status(200).end();
         return;
+    }
+    
+    if(req.method ==='POST'){
+        const { fundos } = req.body;
+        try {
+            let fundosAtualizados = await main(fundos); // Chama a função main passando os fundos
+            res.status(200).json({ fundosAtualizados });
+        } catch (error) {
+            console.error('Erro:', error);
+            res.status(500).json({ error: 'Erro ao coletar dados' }); // Responde com erro 500 se algo falhar
+        }
+    } else {
+        res.setHeader('Allow', ['POST']);
+        res.status(405).end(`Method ${req.method} Not Allowed`); // Responde com erro 405 se o método não for permitido
+    }
     }
 
     if (req.method === 'GET') {//caso o método selecionado seja get
@@ -29,13 +45,12 @@ module.exports = async (req, res) => {
     } else {//se a requisição não for nem get nem options, retorna dizendo que a requisição não é permitida
         res.setHeader('Allow', ['GET']);
         res.status(405).end(`Method ${req.method} Not Allowed`);
-    }
-};
+    };
 
-async function main() {
-    for (let i = 0; i < fundos.length; i++) {
+async function main(fundos) {
+    for (let fundo of fundos) {
         try {
-            const response = await axios.get(url + fundos[i].ticker, {//acessa a url com um método do tipo get
+            const response = await axios.get(url + fundo.ticker, {//acessa a url com um método do tipo get
                 headers: {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
                     //O cabeçalho User-Agent informa ao servidor quem está fazendo a requisição. Neste caso, está sendo enviado um valor que simula um navegador comum (Chrome), o que pode ser útil para evitar bloqueios de acesso a determinadas APIs que rejeitam requisições sem um User-Agent adequado ou que são feitas por scripts.
@@ -49,25 +64,25 @@ async function main() {
 
             // cotação
             $("._card.cotacao ._card-body div").each(function () {
-                fundos[i].cotacao = $(this).find(".value").text().trim();
+                fundo.cotacao = $(this).find(".value").text().trim();
             });
 
             // p/vp
             $("._card.vp ._card-body").each(function () {
-                fundos[i].pvp = $(this).find("span").text().trim();
+                fundo.pvp = $(this).find("span").text().trim();
             });
 
             // preço justo
             $(".cell").eq(12).children(".desc").each(function () {
-                fundos[i].precoJusto = $(this).find(".value").text().trim();
+                fundo.precoJusto = $(this).find(".value").text().trim();
             });
 
             // DY 12 meses
-            fundos[i].valueDividendYeldTwelveMonths = $('.content--info .content--info--item').eq(3).children('.content--info--item--value').eq(0).text().trim();
+            fundo.valueDividendYeldTwelveMonths = $('.content--info .content--info--item').eq(3).children('.content--info--item--value').eq(0).text().trim();
 
             // último dividendo
             $(".cell").eq(14).children(".desc").each(function () {
-                fundos[i].lastDividend = $(this).find(".value").text().trim();
+                fundo.lastDividend = $(this).find(".value").text().trim();
             });
         } catch (error) {
             console.error('Erro ao fazer a requisição:', error);
