@@ -28,11 +28,8 @@ module.exports = async (req, res) => {
             console.error('Erro:', error);
             res.status(500).json({ error: 'Erro ao coletar dados' }); // Responde com erro 500
         }
-    } else if (req.method === 'GET') {
-        // Lógica para GET (opcional)
-        res.status(200).json({ message: 'Método GET não implementado' });
     } else {
-        res.setHeader('Allow', ['POST', 'GET']);
+        res.setHeader('Allow', ['POST']);
         res.status(405).end(`Method ${req.method} Not Allowed`); // Responde com erro 405
     }
 };
