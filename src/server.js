@@ -23,7 +23,8 @@ module.exports = async (req, res) => {
     if (req.method === 'OPTIONS') {
         res.status(200).end();
         return;
-    } else if (req.method === 'POST') {
+    } 
+    if (req.method === 'POST') {
         const { fundos } = req.body; // Receber os fundos do corpo da requisição
         try {
             dados.fundosPadrao = fundos;
@@ -33,7 +34,8 @@ module.exports = async (req, res) => {
             console.error('Erro:', error);
             res.status(500).json({ error: 'Erro ao coletar dados' }); // Responde com erro 500
         }
-    } else if (req.method === 'GET') {
+    }
+    if (req.method === 'GET') {
         dadosAtt = await main(dados.fundosPadrao);
         res.status(200).json({ dadosAtt });
     } else {
