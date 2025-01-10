@@ -1,4 +1,4 @@
-const axios = require('axios');//axios é uma biblioteca que permite fazer requisições http, com base em promises (async, await)
+const puppeteer = require('puppeteer');//puppeteer é uma biblioteca que acessa a internet
 const cheerio = require('cheerio');//cheerio é uma biblioteca que nos permite manipular o conteúdo html da url fornecida
 let dados = {
     "indicesPadrão": [
@@ -27,42 +27,43 @@ module.exports = async (req, res) => {
         const { fundos } = req.body; // Receber os fundos do corpo da requisição
         try {
             dados.fundosPadrao = fundos;
-            let fundosAtualizados = await main(dados.indicesPadrão, dados.fundosPadrao); // Chama a função main passando os fundos
+            let fundosAtualizados = await main(dados.fundosPadrao); // Chama a função main passando os fundos
             res.status(200).json({ fundosAtualizados }); // Responde com os dados atualizados
         } catch (error) {
             console.error('Erro:', error);
             res.status(500).json({ error: 'Erro ao coletar dados' }); // Responde com erro 500
         }
     } else if (req.method === 'GET') {
-        fundosPadrao = await main(dados.indicesPadrão, dados.fundosPadrao);
-        res.status(200).json({});
+        dadosAtt = await main(dados.fundosPadrao);
+        res.status(200).json({dadosAtt});
     } else {
         res.setHeader('Allow', ['POST', 'GET']);
         res.status(405).end(`Method ${req.method} Not Allowed`); // Responde com erro 405
     }
 };
-async function main(indices, fundos) {
+
+async function main(fundos) {
     try {
         url = 'https://investidor10.com.br/indices/';
-        const response = await axios.get(url, {//acessa a url com um método do tipo get
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                //O cabeçalho User-Agent informa ao servidor quem está fazendo a requisição. Neste caso, está sendo enviado um valor que simula um navegador comum (Chrome), o que pode ser útil para evitar bloqueios de acesso a determinadas APIs que rejeitam requisições sem um User-Agent adequado ou que são feitas por scripts.
-            }
+        const browser = await puppeteer.launch({
+            headless: false, // Coloque true se quiser que o navegador não apareça
         });
-
-        const html = response.data;//armazena os dados da requisição http, que no caso é um html
-        const $ = cheerio.load(html);//lê os elementos html
-
+    
+        // Criar uma nova página
+        const page = await browser.newPage();
+        await page.goto(url);
+        await page.waitForSelector('.indices-grid');
+        const html = await page.content();
+        const $ = cheerio.load(html);
         //aqui é onde acessamos partes específicas do html para extrair os dados que queremos:
-
+        
         //Selic
-        $(".indices-grid .index-card").eq(2).children(".body").each(function () {
+        $(".indices-grid .index-card").eq(0).children(".body").each(function () {
             dados.indicesPadrão[0].valor = $(this).find("p strong").text().trim();
         });
 
         //CDI
-        $(".indices-grid .index-card").eq(0).children(".body").each(function () {
+        $(".indices-grid .index-card").eq(2).children(".body").each(function () {
             dados.indicesPadrão[1].valor = $(this).find("p strong").text().trim();
         });
 
@@ -75,7 +76,7 @@ async function main(indices, fundos) {
         $(".indices-grid .index-card").eq(3).children(".body").eq(0).children("p").each(function () {
             dados.indicesPadrão[3].valor = $(this).find("strong").text().trim();
         });
-        console.log(indices);
+        await browser.close();
     } catch (error) {
         console.error('Erro ao fazer a requisição:', error);
     }
@@ -83,16 +84,16 @@ async function main(indices, fundos) {
     for (let fundo of fundos) {
         try {
             url = 'https://investidor10.com.br/fiis/';
-            const response = await axios.get(url + fundo.ticker, {//acessa a url com um método do tipo get
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                    //O cabeçalho User-Agent informa ao servidor quem está fazendo a requisição. Neste caso, está sendo enviado um valor que simula um navegador comum (Chrome), o que pode ser útil para evitar bloqueios de acesso a determinadas APIs que rejeitam requisições sem um User-Agent adequado ou que são feitas por scripts.
-                }
+            const browser = await puppeteer.launch({
+                headless: false, // Coloque true se quiser que o navegador não apareça
             });
-
-            const html = response.data;//armazena os dados da requisição http, que no caso é um html
-            const $ = cheerio.load(html);//lê os elementos html
-
+        
+            // Criar uma nova página
+            const page = await browser.newPage();
+            await page.goto(url+fundo.ticker);
+            await page.waitForSelector('._card.cotacao');
+            const html = await page.content();
+            const $ = cheerio.load(html);
             //aqui é onde acessamos partes específicas do html para extrair os dados que queremos:
 
             // cotação
@@ -117,6 +118,7 @@ async function main(indices, fundos) {
             $(".cell").eq(14).children(".desc").each(function () {
                 fundo.lastDividend = $(this).find(".value").text().trim();
             });
+            await browser.close();
         } catch (error) {
             console.error('Erro ao fazer a requisição:', error);
         }
@@ -124,4 +126,3 @@ async function main(indices, fundos) {
 
     return dados;
 }
-run();
