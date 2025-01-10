@@ -43,10 +43,6 @@ module.exports = async (req, res) => {
         res.status(405).end(`Method ${req.method} Not Allowed`); // Responde com erro 405
     }
 };
-async function run() {
-    let dadosAtt = await main(dados.fundosPadrao);
-    console.log(dadosAtt);
-}
 async function main(fundos) {
     try {
         url = 'https://investidor10.com.br/indices/';
@@ -133,4 +129,3 @@ async function main(fundos) {
     }
     return dados;
 }
-run();
