@@ -45,11 +45,7 @@ module.exports = async (req, res) => {
 async function main(fundos) {
     try {
         url = 'https://investidor10.com.br/indices/';
-        const browser = await puppeteer.launch({
-            headless: false, // Coloque true se quiser que o navegador não apareça
-        });
-    
-        // Criar uma nova página
+        const browser = await puppeteer.launch();
         const page = await browser.newPage();
         await page.goto(url);
         await page.waitForSelector('.indices-grid');
@@ -84,11 +80,7 @@ async function main(fundos) {
     for (let fundo of fundos) {
         try {
             url = 'https://investidor10.com.br/fiis/';
-            const browser = await puppeteer.launch({
-                headless: false, // Coloque true se quiser que o navegador não apareça
-            });
-        
-            // Criar uma nova página
+            const browser = await puppeteer.launch();
             const page = await browser.newPage();
             await page.goto(url+fundo.ticker);
             await page.waitForSelector('._card.cotacao');
