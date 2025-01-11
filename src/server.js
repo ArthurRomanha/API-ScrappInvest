@@ -6,11 +6,6 @@ let dados = {
         { "indice": "CDI", "valor": "" },
         { "indice": "IPCA", "valor": "" },
         { "indice": "Ibovespa", "valor": "" }
-    ],
-    fundosPadrao: [
-        { "ticker": "gare11", "cotacao": "", "pvp": "", "precoJusto": "", "valueDividendYeldTwelveMonths": "", "lastDividend": "" },
-        { "ticker": "ggrc11", "cotacao": "", "pvp": "", "precoJusto": "", "valueDividendYeldTwelveMonths": "", "lastDividend": "" },
-        { "ticker": "trxf11", "cotacao": "", "pvp": "", "precoJusto": "", "valueDividendYeldTwelveMonths": "", "lastDividend": "" }
     ]
 };
 let url = '';
