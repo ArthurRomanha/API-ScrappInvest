@@ -36,13 +36,14 @@ module.exports = async (req, res) => {
         }
     }
     if (req.method === 'GET') {
-        dadosAtt = await main(dados.fundosPadrao);
+        dadosAtt = await main("");
         res.status(200).json({ dadosAtt });
     } else {
         res.setHeader('Allow', ['POST', 'GET']);
         res.status(405).end(`Method ${req.method} Not Allowed`); // Responde com erro 405
     }
 };
+
 async function main(fundos) {
     try {
         url = 'https://investidor10.com.br/indices/';
