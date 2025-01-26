@@ -102,7 +102,7 @@ async function main(fundos) {
         const $ = cheerio.load(html);
 
         $(".chart-info.row.ng-scope .chart-info-pay.col-sm-5.col-xs-3.no-gutter-xs div.info-content").each(function () {
-            dados.indicesPadrao[5].valor = $("span.chart-info-val ng-binding;").text().trim();
+            dados.indicesPadrao[5].valor = $("span.chart-info-val.ng-binding;").text().trim();
         });
     } catch (error){
         console.error('Erro ao fazer a requisição:', error);
