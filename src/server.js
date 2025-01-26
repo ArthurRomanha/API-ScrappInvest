@@ -5,7 +5,9 @@ let dados = {
         { "indice": "Selic", "valor": "" },
         { "indice": "CDI", "valor": "" },
         { "indice": "IPCA", "valor": "" },
-        { "indice": "Ibovespa", "valor": "" }
+        { "indice": "Ibovespa", "valor": "" },
+        { "indice": "IFIX", "valor": "" },
+        { "indice": "Dólar", "valor": "" }
     ]
 };
 let url = '';
@@ -75,6 +77,12 @@ async function main(fundos) {
         $(".indices-grid .index-card").eq(3).children(".body").eq(0).children("p").each(function () {
             dados.indicesPadrao[3].valor = $(this).find("strong").text().trim();
         });
+
+        //IFIX
+        $(".indices-grid .index-card").eq(3).children(".body").eq(0).children("p").each(function () {
+            dados.indicesPadrao[4].valor = $(this).find("strong").text().trim();
+        });
+
     } catch (error) {
         console.error('Erro ao fazer a requisição:', error);
     }
@@ -118,6 +126,11 @@ async function main(fundos) {
             // último dividendo
             $(".cell").eq(14).children(".desc").each(function () {
                 fundo.lastDividend = $(this).find(".value").text().trim();
+            });
+
+            //liquidez
+            $("._card.val ._card-body").each(function () {
+                fundo.liquidez = $(this).find("span").text().trim();
             });
         } catch (error) {
             console.error('Erro ao fazer a requisição:', error);
