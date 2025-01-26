@@ -79,7 +79,7 @@ async function main(fundos) {
         });
 
         //IFIX
-        $(".indices-grid .index-card").eq(4).children(".body").eq(0).children("p").each(function () {
+        $(".indices-grid .index-card").eq(7).children(".body").eq(0).children("p").each(function () {
             dados.indicesPadrao[4].valor = $(this).find("strong").text().trim();
         });
 
