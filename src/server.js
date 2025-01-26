@@ -87,7 +87,7 @@ async function main(fundos) {
         console.error('Erro ao fazer a requisição:', error);
     }
     try{
-        url = 'https://investidor10.com.br/indices/';
+        url = 'https://economia.uol.com.br/cotacoes/cambio/';
         const response = await axios(url, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
