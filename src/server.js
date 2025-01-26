@@ -79,14 +79,34 @@ async function main(fundos) {
         });
 
         //IFIX
-        $(".indices-grid .index-card").eq(5).children(".body").eq(0).children("p").each(function () {
+        $(".indices-grid .index-card").eq(3).children(".body").eq(0).children("p").each(function () {
             dados.indicesPadrao[4].valor = $(this).find("strong").text().trim();
         });
 
     } catch (error) {
         console.error('Erro ao fazer a requisição:', error);
     }
+    try{
+        url = 'https://investidor10.com.br/indices/';
+        const response = await axios(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1'
+            }
+        });
 
+        const html = response.data;
+        const $ = cheerio.load(html);
+
+        $(".chart-info.row.ng-scope .chart-info-pay.col-sm-5.col-xs-3.no-gutter-xs div.info-content").each(function () {
+            dados.indicesPadrao[5].valor = $("span.chart-info-val ng-binding;").text().trim();
+        });
+    } catch (error){
+        console.error('Erro ao fazer a requisição:', error);
+    }
     for (let fundo of fundos) {
         try {
             url = 'https://investidor10.com.br/fiis/';
