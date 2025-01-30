@@ -73,8 +73,15 @@ async function fetchIndicesData() {
         dados.indicesPadrao[0].valor = $(".indices-grid .index-card").eq(2).find(".body p strong").text().trim(); // Selic
         dados.indicesPadrao[1].valor = $(".indices-grid .index-card").eq(0).find(".body p strong").text().trim(); // CDI
         dados.indicesPadrao[2].valor = $(".indices-grid .index-card").eq(1).find(".body p strong").text().trim(); // IPCA
-        dados.indicesPadrao[3].valor = $(".indices-grid .index-card").eq(3).find(".body p strong").text().trim(); // Ibovespa
-        dados.indicesPadrao[4].valor = $(".indices-grid .index-card").eq(5).find(".body p strong").text().trim(); // IFIX
+        //IBOV
+        $(".indices-grid .index-card").eq(3).children(".body").eq(0).children("p").each(function () {
+            dados.indicesPadrao[3].valor = $(this).find("strong").text().trim();
+        });
+
+        //IFIX
+        $(".indices-grid .index-card").eq(5).children(".body").eq(0).children("p").each(function () {
+            dados.indicesPadrao[4].valor = $(this).find("strong").text().trim();
+        });
     } catch (error) {
         console.error('Erro ao fazer a requisição:', error);
     }
