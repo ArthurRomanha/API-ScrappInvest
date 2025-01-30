@@ -1,5 +1,6 @@
-const axios = require('axios');//axios é uma biblioteca que acessa a internet
-const cheerio = require('cheerio');//cheerio é uma biblioteca que nos permite manipular o conteúdo html da url fornecida
+const axios = require('axios'); // biblioteca para acessar a internet
+const cheerio = require('cheerio'); // biblioteca para manipular HTML
+
 let dados = {
     indicesPadrao: [
         { "indice": "Selic", "valor": "" },
@@ -10,151 +11,99 @@ let dados = {
         { "indice": "Dólar", "valor": "" }
     ]
 };
-let url = '';
+
+const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.5',
+    'Connection': 'keep-alive',
+    'Upgrade-Insecure-Requests': '1'
+};
 
 module.exports = async (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*'); // cabeçalho http que permite acesso de todas as origens
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS'); // define que os métodos permitidos são apenas get e options, logo não é possível alterar nada
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    } 
+        return res.status(200).end();
+    }
+
     if (req.method === 'POST') {
-        const { fundos } = req.body; // Receber os fundos do corpo da requisição
+        const { fundos } = req.body;
         try {
             dados.fundosPadrao = fundos;
-            let fundosAtualizados = await main(dados.fundosPadrao); // Chama a função main passando os fundos
-            res.status(200).json({ fundosAtualizados }); // Responde com os dados atualizados
+            const fundosAtualizados = await main(fundos);
+            return res.status(200).json({ fundosAtualizados });
         } catch (error) {
             console.error('Erro:', error);
-            res.status(500).json({ error: 'Erro ao coletar dados' }); // Responde com erro 500
+            return res.status(500).json({ error: 'Erro ao coletar dados' });
         }
     }
+
     if (req.method === 'GET') {
-        dadosAtt = await main("");
-        res.status(200).json({ dadosAtt });
-    } else {
-        res.setHeader('Allow', ['POST', 'GET']);
-        res.status(405).end(`Method ${req.method} Not Allowed`); // Responde com erro 405
+        try {
+            const dadosAtt = await main([]);
+            return res.status(200).json({ dadosAtt });
+        } catch (error) {
+            console.error('Erro:', error);
+            return res.status(500).json({ error: 'Erro ao coletar dados' });
+        }
     }
+
+    res.setHeader('Allow', ['POST', 'GET']);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
 };
 
 async function main(fundos) {
+    await Promise.all([
+        fetchIndicesData(),
+        fetchDollarData(),
+        ...fundos.map(fundo => fetchFundData(fundo))
+    ]);
+    return dados;
+}
+
+async function fetchIndicesData() {
+    const url = 'https://investidor10.com.br/indices/';
     try {
-        url = 'https://investidor10.com.br/indices/';
-        const response = await axios(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5',
-                'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1'
-            }
-        });
-
-        const html = response.data;
-        const $ = cheerio.load(html);
-        //aqui é onde acessamos partes específicas do html para extrair os dados que queremos:
-
-        //Selic
-        $(".indices-grid .index-card").eq(2).children(".body").each(function () {
-            dados.indicesPadrao[0].valor = $(this).find("p strong").text().trim();
-        });
-
-        //CDI
-        $(".indices-grid .index-card").eq(0).children(".body").each(function () {
-            dados.indicesPadrao[1].valor = $(this).find("p strong").text().trim();
-        });
-
-        //IPCA
-        $(".indices-grid .index-card").eq(1).children(".body").eq(0).children("p").each(function () {
-            dados.indicesPadrao[2].valor = $(this).find("strong").text().trim();
-        });
-
-        //IBOV
-        $(".indices-grid .index-card").eq(3).children(".body").eq(0).children("p").each(function () {
-            dados.indicesPadrao[3].valor = $(this).find("strong").text().trim();
-        });
-
-        //IFIX
-        $(".indices-grid .index-card").eq(5).children(".body").eq(0).children("p").each(function () {
-            dados.indicesPadrao[4].valor = $(this).find("strong").text().trim();
-        });
-
+        const response = await axios.get(url, { headers });
+        const $ = cheerio.load(response.data);
+        
+        dados.indicesPadrao[0].valor = $(".indices-grid .index-card").eq(2).find(".body p strong").text().trim(); // Selic
+        dados.indicesPadrao[1].valor = $(".indices-grid .index-card").eq(0).find(".body p strong").text().trim(); // CDI
+        dados.indicesPadrao[2].valor = $(".indices-grid .index-card").eq(1).find(".body p strong").text().trim(); // IPCA
+        dados.indicesPadrao[3].valor = $(".indices-grid .index-card").eq(3).find(".body p strong").text().trim(); // Ibovespa
+        dados.indicesPadrao[4].valor = $(".indices-grid .index-card").eq(5).find(".body p strong").text().trim(); // IFIX
     } catch (error) {
         console.error('Erro ao fazer a requisição:', error);
     }
-    try{
-        url = 'https://economia.uol.com.br/cotacoes/cambio/';
-        const response = await axios(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5',
-                'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1'
-            }
-        });
+}
 
-        const html = response.data;
-        const $ = cheerio.load(html);
-
-        $(".chart-info.row.ng-scope .chart-info-pay.col-sm-5.col-xs-3.no-gutter-xs div.info-content").each(function () {
-            dados.indicesPadrao[5].valor = $("span.chart-info-val.ng-binding;").text().trim();
-        });
-    } catch (error){
+async function fetchDollarData() {
+    const url = 'https://economia.uol.com.br/cotacoes/cambio/';
+    try {
+        const response = await axios.get(url, { headers });
+        const $ = cheerio.load(response.data);
+        dados.indicesPadrao[5].valor = $(".chart-info.row.ng-scope .chart-info-pay.col-sm-5.col-xs-3.no-gutter-xs div.info-content span.chart-info-val.ng-binding").text().trim();
+    } catch (error) {
         console.error('Erro ao fazer a requisição:', error);
     }
-    for (let fundo of fundos) {
-        try {
-            url = 'https://investidor10.com.br/fiis/';
-            const response = await axios.get(url + fundo.ticker, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                    'Connection': 'keep-alive',
-                    'Upgrade-Insecure-Requests': '1'
-                }
-            });
+}
 
-
-            const html = response.data;
-            const $ = cheerio.load(html);
-            //aqui é onde acessamos partes específicas do html para extrair os dados que queremos:
-
-            // cotação
-            $("._card.cotacao ._card-body div").each(function () {
-                fundo.cotacao = $(this).find(".value").text().trim();
-            });
-
-            // p/vp
-            $("._card.vp ._card-body").each(function () {
-                fundo.pvp = $(this).find("span").text().trim();
-            });
-
-            // preço justo
-            $(".cell").eq(12).children(".desc").each(function () {
-                fundo.precoJusto = $(this).find(".value").text().trim();
-            });
-
-            // DY 12 meses
-            fundo.valueDividendYeldTwelveMonths = $('.content--info .content--info--item').eq(3).children('.content--info--item--value').eq(0).text().trim();
-
-            // último dividendo
-            $(".cell").eq(14).children(".desc").each(function () {
-                fundo.lastDividend = $(this).find(".value").text().trim();
-            });
-
-            //liquidez
-            $("._card.val ._card-body").each(function () {
-                fundo.liquidez = $(this).find("span").text().trim();
-            });
-        } catch (error) {
-            console.error('Erro ao fazer a requisição:', error);
-        }
+async function fetchFundData(fundo) {
+    const url = `https://investidor10.com.br/fiis/${fundo.ticker}`;
+    try {
+        const response = await axios.get(url, { headers });
+        const $ = cheerio.load(response.data);
+        
+        fundo.cotacao = $("._card.cotacao ._card-body div .value").text().trim();
+        fundo.pvp = $("._card.vp ._card-body span").text().trim();
+        fundo.precoJusto = $(".cell").eq(12).find(".desc .value").text().trim();
+        fundo.valueDividendYeldTwelveMonths = $('.content--info .content--info--item').eq(3).children('.content--info--item--value').eq(0).text().trim();
+        fundo.lastDividend = $(".cell").eq(14).find(".desc .value").text().trim();
+        fundo.liquidez = $("._card.val ._card-body span").text().trim();
+    } catch (error) {
+        console.error('Erro ao fazer a requisição:', error);
     }
-    return dados;
 }
