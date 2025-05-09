@@ -7,7 +7,6 @@ let dados = {
         { "indice": "IPCA", "valor": "" },
         { "indice": "Ibovespa", "valor": "" },
         { "indice": "IFIX", "valor": "" },
-        { "indice": "Dólar", "valor": "" }
     ]
 };
 
@@ -57,7 +56,6 @@ module.exports = async (req, res) => {
 async function main(fundos) {
     await Promise.all([
         fetchIndicesData(),
-        fetchDollarData(),
         ...fundos.map(fundo => fetchFundData(fundo))
     ]);
     return dados;
@@ -69,9 +67,7 @@ async function fetchIndicesData() {
         const response = await axios.get(url, { headers });
         const $ = cheerio.load(response.data);
         
-        // Selic
-        dados.indicesPadrao[0].valor = $(".indices-grid .index-card").eq(2).find(".body p strong").text().trim(); 
-        
+        dados.indicesPadrao[0].valor = $(".indices-grid .index-card").eq(2).find(".body p strong").text().trim(); // Selic
         //IPCA
         $(".indices-grid .index-card").eq(1).children(".body").eq(0).children("p").each(function () {
             dados.indicesPadrao[2].valor = $(this).find("strong").text().trim();
@@ -90,18 +86,6 @@ async function fetchIndicesData() {
         console.error('Erro ao fazer a requisição:', error);
     }
 }
-
-async function fetchDollarData() {
-    const url = 'https://economia.uol.com.br/cotacoes/cambio/';
-    try {
-        const response = await axios.get(url, { headers });
-        const $ = cheerio.load(response.data);
-        dados.indicesPadrao[5].valor = $(".chart-info.row.ng-scope .chart-info-pay.col-sm-5.col-xs-3.no-gutter-xs div.info-content span.chart-info-val.ng-binding").text().trim();
-    } catch (error) {
-        console.error('Erro ao fazer a requisição:', error);
-    }
-}
-
 async function fetchFundData(fundo) {
     const url = `https://investidor10.com.br/fiis/${fundo.ticker}`;
     try {
