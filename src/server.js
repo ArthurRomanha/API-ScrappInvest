@@ -4,7 +4,6 @@ const cheerio = require('cheerio'); // biblioteca para manipular HTML
 let dados = {
     indicesPadrao: [
         { "indice": "Selic", "valor": "" },
-        { "indice": "CDI", "valor": "" },
         { "indice": "IPCA", "valor": "" },
         { "indice": "Ibovespa", "valor": "" },
         { "indice": "IFIX", "valor": "" },
@@ -70,8 +69,9 @@ async function fetchIndicesData() {
         const response = await axios.get(url, { headers });
         const $ = cheerio.load(response.data);
         
-        dados.indicesPadrao[0].valor = $(".indices-grid .index-card").eq(2).find(".body p strong").text().trim(); // Selic
-        dados.indicesPadrao[1].valor = $(".indices-grid .index-card").eq(0).find(".body p strong").text().trim(); // CDI
+        // Selic
+        dados.indicesPadrao[0].valor = $(".indices-grid .index-card").eq(2).find(".body p strong").text().trim(); 
+        
         //IPCA
         $(".indices-grid .index-card").eq(1).children(".body").eq(0).children("p").each(function () {
             dados.indicesPadrao[2].valor = $(this).find("strong").text().trim();
